@@ -7,13 +7,15 @@ function [varargout] = createProjectFolders(varargin)
 	%		
 
 	% Defaults
+
 	% Names of folders in the 'Project' folder. These are the 'level_1' folder
-	level1_folders = {'Data','Analysis','Presentations','Publications','License_n_approval'};
-	level2_folders = {{'Confocal','Calcium_imaging','Immunohistochemistry','Behavior'},... % level_2 folders in 'Data'
-		{'Confocal','Calcium_imaging','Immunohistochemistry','Behavior'},... 			   % level_2 folders in 'Analysis'
-		{'Talks','Posters','LabReports'},...											   % level_2 folders in 'Presentations'
-		{},...																			   % level_2 folders in 'Publications'
-		{'Animal_experiment','Narcotic_license'}};										   % level_2 folders in 'License_n_approval'
+	[projSubFolders] = defaultProjectFolders;
+	% level1_folders = {'Data','Analysis','Presentations','Publications','License_n_approval'};
+	% level2_folders = {{'Confocal','Calcium_imaging','Immunohistochemistry','Behavior'},... % level_2 folders in 'Data'
+	% 	{'Confocal','Calcium_imaging','Immunohistochemistry','Behavior'},... 			   % level_2 folders in 'Analysis'
+	% 	{'Talks','Posters','LabReports'},...											   % level_2 folders in 'Presentations'
+	% 	{},...																			   % level_2 folders in 'Publications'
+	% 	{'Animal_experiment','Narcotic_license'}};										   % level_2 folders in 'License_n_approval'
 
 
 
@@ -32,30 +34,58 @@ function [varargout] = createProjectFolders(varargin)
 
 
 
-	% Initialize the folders structure
-	level1_folders_num = numel(level1_folders); % number of level folders 
-	projSubFolders = empty_content_struct({'level1','level2'},level1_folders_num);
+	confirmFolderStruct = 'N'; 
+	
+	while strcmpi(confirmToCreate,'N')
+		level1_folders_num = numel(projSubFolders); % number of level folders 
 
-	% Loop through the strings and assign them to the structure. Display the subfolders (level_1 and level_2)
-	for i = 1:level1_folders_num
-	    projSubFolders(i).level1 = level1_folders{i};
-	    fprintf('	- [%s]\n',projSubFolders(i).level1); % print the level_1 folder name
+		% Loop through the strings and assign them to the structure. Display the subfolders (level_1 and level_2)
+		for i = 1:level1_folders_num
+		    % projSubFolders(i).level1 = level1_folders{i};
+		    fprintf('	- [%s]\n',projSubFolders(i).level1); % print the level_1 folder name
 
-	    % Assign the level_2 folders to the current level_1 folder
-	    projSubFolders(i).level2 = level2_folders{i};
+		    % Assign the level_2 folders to the current level_1 folder
+		    % projSubFolders(i).level2 = level2_folders{i};
 
-	    % Loop through the level_2 folders in the current level_1 folder and print them
-	    level2_folders_num = numel(projSubFolders(i).level2);
-	    for j = 1:level2_folders_num
-	    	fprintf('		- [%s]\n',projSubFolders(i).level2{j});
-	    end
+		    % Loop through the level_2 folders in the current level_1 folder and print them
+		    level2_folders_num = numel(projSubFolders(i).level2);
+		    for j = 1:level2_folders_num
+		    	fprintf('		- [%s]\n',projSubFolders(i).level2{j});
+		    end
+		end
+
+		% Ask to confirm the folder structure
+		prompt_confirmFolderStruct = '\nUse the structure shown above Y/N(modify folders)/C(cancel) [Y]: ';
+		confirmFolderStruct = input(prompt_confirmFolderStruct,'s');
+		if isempty(confirmFolderStruct) % if the input is empty, assign the the default answer, Y
+			confirmFolderStruct = 'Y'; 
+		end
+
+		if strcmpi(confirmToCreate,'Y')
+			break
+		elseif strcmpi(confirmToCreate,'N')
+			modFolderStruct = true; 
+			j = 1;
+			while modFolderStruct
+				[level1_folder, level2_folders] = input_gui(projSubFolders(j).level1, projSubFolders(i).level2);
+				if isempty(level1_folder)
+					modFolderStruct = false;
+				else
+					projSubFolders(j).level1 = level1_folder;
+					projSubFolders(i).level2 = level2_folders;
+					j = j+1;
+				end
+			end
+		elseif strcmpi(confirmToCreate,'C')
+			return
+		end
 	end
 
 
 
-	% Ask to confirm the folder structure
-	prompt_confirm_folder_struct = '\nChoose a location to create a project folder with the structure shown above Y/N [Y]: ';
-	confirmToCreate = input(prompt_confirm_folder_struct,'s');
+	% Ask to confirm the creation of the project folder
+	prompt_confirmToCreat = '\nChoose a location to create a project folder with the structure shown above Y/N [Y]: ';
+	confirmToCreate = input(prompt_confirmToCreat,'s');
 	if isempty(confirmToCreate) % if the input is empty, assign the the default answer, Y
 		confirmToCreate = 'Y'; 
 	end
@@ -99,4 +129,6 @@ function [varargout] = createProjectFolders(varargin)
 			return
 		end
 	end
+
+	varargout{1} = projSubFolders;
 end
